@@ -3,133 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeSpeed Pro - Modern Typing Test</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <title>TypeSpeed Pro - Advanced Typing Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/recharts.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
         
         * {
             font-family: 'Inter', sans-serif;
         }
         
-        .typing-cursor {
-            animation: blink 1s infinite;
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
         }
         
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
+        body {
+            overflow-x: hidden;
         }
         
-        .word-correct {
-            background: linear-gradient(120deg, #10b981, #059669);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .word-incorrect {
-            background: linear-gradient(120deg, #ef4444, #dc2626);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .char-correct {
-            color: #10b981;
-            background-color: rgba(16, 185, 129, 0.1);
-        }
-        
-        .char-incorrect {
-            color: #ef4444;
-            background-color: rgba(239, 68, 68, 0.1);
-        }
-        
-        .char-current {
-            background-color: #3b82f6;
-            color: white;
-            animation: pulse 1s infinite;
+        /* Advanced Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(2deg); }
+            66% { transform: translateY(-15px) rotate(-1deg); }
         }
         
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
         }
         
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        @keyframes slideInFromLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
         }
         
-        .dark .gradient-bg {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        @keyframes slideInFromRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
         }
         
-        .glass-effect {
-            backdrop-filter: blur(10px);
+        @keyframes slideInFromTop {
+            0% { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideInFromBottom {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-color: transparent; }
+            51%, 100% { border-color: #3b82f6; }
+        }
+        
+        /* Gradient Animations */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .animated-gradient {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        .dark .animated-gradient {
+            background: linear-gradient(-45deg, #1a202c, #2d3748, #4a5568, #2b6cb0, #553c9a, #9f7aea);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        /* Glass Effect */
+        .glass {
             background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
-        .dark .glass-effect {
+        .dark .glass {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .floating-animation {
-            animation: float 6s ease-in-out infinite;
+        /* Typing Characters */
+        .char {
+            transition: all 0.2s ease;
+            border-radius: 2px;
+            padding: 1px;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        .char-correct {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
         }
         
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
+        .char-incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            animation: shake 0.3s ease-in-out;
         }
         
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .char-current {
+            background: #3b82f6;
+            color: white;
+            animation: blink 1s infinite;
         }
         
-        .fade-in {
-            animation: fadeIn 0.3s ease-out;
+        .char-pending {
+            color: #6b7280;
+            transition: color 0.2s ease;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .dark .char-pending {
+            color: #9ca3af;
         }
         
-        .chart-container {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 16px;
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.8);
+        }
+        
+        /* Animation Classes */
+        .float { animation: float 6s ease-in-out infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .slide-in-left { animation: slideInFromLeft 0.8s ease-out; }
+        .slide-in-right { animation: slideInFromRight 0.8s ease-out; }
+        .slide-in-top { animation: slideInFromTop 0.6s ease-out; }
+        .slide-in-bottom { animation: slideInFromBottom 0.8s ease-out; }
+        .glow { animation: glow 2s ease-in-out infinite; }
+        
+        /* Particle Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: particleFloat 20s linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Results Modal */
+        .modal-backdrop {
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            transform: scale(0.9);
+            animation: modalShow 0.3s ease-out forwards;
+        }
+        
+        @keyframes modalShow {
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        /* Progress Ring */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        
+        /* Neon Button Effect */
+        .neon-button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .neon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .neon-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .neon-button:hover::before {
+            left: 100%;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+    <!-- Particle Background -->
+    <div class="particles"></div>
 
-        // Word lists for different difficulty levels
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // Enhanced word lists with more variety
         const WORD_LISTS = {
-            easy: ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'had', 'day', 'get', 'use', 'man', 'new', 'now', 'way', 'may', 'say', 'each', 'which', 'their', 'time', 'will', 'about', 'if', 'up', 'out', 'many', 'then', 'them', 'these', 'so', 'some', 'what', 'would'],
-            medium: ['through', 'just', 'form', 'sentence', 'great', 'think', 'where', 'much', 'before', 'move', 'right', 'too', 'any', 'same', 'tell', 'does', 'most', 'know', 'get', 'through', 'back', 'much', 'before', 'good', 'sentence', 'man', 'think', 'say', 'great', 'where', 'help', 'through', 'much', 'before', 'line', 'right', 'too', 'means', 'old', 'any'],
-            hard: ['extraordinary', 'phenomenon', 'conscientious', 'prerequisite', 'accommodate', 'definitely', 'separate', 'necessary', 'achievement', 'maintenance', 'embarrass', 'occurrence', 'privilege', 'temperature', 'tomorrow', 'beautiful', 'calendar', 'committee', 'language', 'restaurant', 'surprised', 'difference', 'government', 'independent', 'beginning', 'interesting', 'knowledge', 'available', 'everything', 'experience']
+            easy: [
+                'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her',
+                'was', 'one', 'our', 'had', 'day', 'get', 'use', 'man', 'new', 'now',
+                'way', 'may', 'say', 'each', 'time', 'will', 'about', 'if', 'up', 'out',
+                'many', 'then', 'them', 'these', 'so', 'some', 'what', 'would', 'make',
+                'like', 'into', 'him', 'has', 'two', 'more', 'very', 'after', 'words'
+            ],
+            medium: [
+                'through', 'just', 'form', 'sentence', 'great', 'think', 'where', 'much',
+                'before', 'move', 'right', 'too', 'any', 'same', 'tell', 'does', 'most',
+                'know', 'follow', 'around', 'came', 'want', 'show', 'also', 'small',
+                'found', 'asked', 'going', 'work', 'different', 'home', 'large', 'must',
+                'big', 'even', 'such', 'because', 'turned', 'here', 'why', 'went', 'men'
+            ],
+            hard: [
+                'extraordinary', 'phenomenon', 'conscientious', 'prerequisite', 'accommodate',
+                'definitely', 'separate', 'necessary', 'achievement', 'maintenance', 'embarrass',
+                'occurrence', 'privilege', 'temperature', 'tomorrow', 'beautiful', 'calendar',
+                'committee', 'language', 'restaurant', 'surprised', 'difference', 'government',
+                'independent', 'beginning', 'interesting', 'knowledge', 'available', 'everything',
+                'experience', 'immediately', 'environment', 'successful', 'particularly'
+            ]
         };
 
-        // App component
-        function TypingTestApp() {
+        // Particle system component
+        const ParticleSystem = () => {
+            useEffect(() => {
+                const createParticle = () => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                    
+                    const particles = document.querySelector('.particles');
+                    if (particles) {
+                        particles.appendChild(particle);
+                        
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                        }, 25000);
+                    }
+                };
+
+                const interval = setInterval(createParticle, 2000);
+                
+                // Create initial particles
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(createParticle, i * 400);
+                }
+
+                return () => clearInterval(interval);
+            }, []);
+
+            return null;
+        };
+
+        // Progress ring component
+        const ProgressRing = ({ progress, size = 120 }) => {
+            const radius = (size - 10) / 2;
+            const circumference = radius * 2 * Math.PI;
+            const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+            return (
+                <svg className="progress-ring" width={size} height={size}>
+                    <circle
+                        className="progress-ring-circle"
+                        stroke="rgba(59, 130, 246, 0.2)"
+                        strokeWidth="8"
+                        fill="transparent"
+                        r={radius}
+                        cx={size / 2}
+                        cy={size / 2}
+                    />
+                    <circle
+                        className="progress-ring-circle"
+                        stroke="#3b82f6"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        fill="transparent"
+                        r={radius}
+                        cx={size / 2}
+                        cy={size / 2}
+                        style={{
+                            strokeDasharray: circumference,
+                            strokeDashoffset: strokeDashoffset,
+                        }}
+                    />
+                    <text
+                        x={size / 2}
+                        y={size / 2}
+                        textAnchor="middle"
+                        dy="0.3em"
+                        className="text-2xl font-bold fill-current text-blue-500"
+                    >
+                        {Math.round(progress)}%
+                    </text>
+                </svg>
+            );
+        };
+
+        // Main App Component
+        const TypingTestApp = () => {
+            // State management
             const [darkMode, setDarkMode] = useState(false);
             const [difficulty, setDifficulty] = useState('medium');
             const [timeLimit, setTimeLimit] = useState(60);
@@ -140,97 +390,193 @@
             const [currentIndex, setCurrentIndex] = useState(0);
             const [wpm, setWpm] = useState(0);
             const [accuracy, setAccuracy] = useState(100);
-            const [chartData, setChartData] = useState([]);
             const [totalKeystrokes, setTotalKeystrokes] = useState(0);
             const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
-            const [mistypedWords, setMistypedWords] = useState([]);
             const [isComplete, setIsComplete] = useState(false);
             const [showResults, setShowResults] = useState(false);
+            const [errors, setErrors] = useState(0);
+            const [chartData, setChartData] = useState([]);
             
             const inputRef = useRef(null);
             const startTimeRef = useRef(null);
+            const chartRef = useRef(null);
+            const chartInstanceRef = useRef(null);
 
-            // Initialize text based on difficulty
-            useEffect(() => {
-                generateText();
+            // Generate text for typing test
+            const generateText = useCallback(() => {
+                const words = WORD_LISTS[difficulty];
+                const wordCount = difficulty === 'easy' ? 30 : difficulty === 'medium' ? 40 : 50;
+                const selectedWords = [];
+                
+                for (let i = 0; i < wordCount; i++) {
+                    const randomWord = words[Math.floor(Math.random() * words.length)];
+                    selectedWords.push(randomWord);
+                }
+                
+                setCurrentText(selectedWords.join(' ') + ' ');
             }, [difficulty]);
 
-            // Timer logic
+            // Initialize text when difficulty changes
+            useEffect(() => {
+                generateText();
+            }, [generateText]);
+
+            // Timer effect
             useEffect(() => {
                 let interval = null;
                 if (isActive && timeLeft > 0) {
                     interval = setInterval(() => {
-                        setTimeLeft(timeLeft => {
-                            if (timeLeft <= 1) {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
                                 setIsActive(false);
                                 setIsComplete(true);
                                 setShowResults(true);
                                 return 0;
                             }
-                            return timeLeft - 1;
+                            return prev - 1;
                         });
                     }, 1000);
-                } else if (!isActive && timeLeft !== 0) {
-                    clearInterval(interval);
                 }
-                return () => clearInterval(interval);
+                return () => {
+                    if (interval) clearInterval(interval);
+                };
             }, [isActive, timeLeft]);
 
-            // Update stats every second during test
-            useEffect(() => {
-                if (isActive && startTimeRef.current) {
-                    const interval = setInterval(() => {
-                        updateStats();
-                    }, 1000);
-                    return () => clearInterval(interval);
-                }
-            }, [isActive, userInput]);
-
-            const generateText = () => {
-                const words = WORD_LISTS[difficulty];
-                const textLength = difficulty === 'easy' ? 50 : difficulty === 'medium' ? 70 : 90;
-                const randomText = [];
-                
-                for (let i = 0; i < textLength; i++) {
-                    randomText.push(words[Math.floor(Math.random() * words.length)]);
-                }
-                
-                setCurrentText(randomText.join(' '));
-            };
-
-            const updateStats = () => {
+            // Update stats
+            const updateStats = useCallback(() => {
                 if (!startTimeRef.current || userInput.length === 0) return;
 
-                const timeElapsed = (Date.now() - startTimeRef.current) / 1000 / 60; // in minutes
-                const wordsTyped = userInput.trim().split(' ').length;
-                const currentWpm = Math.round(wordsTyped / timeElapsed) || 0;
-                const currentAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100) || 100;
+                const timeElapsedMinutes = (Date.now() - startTimeRef.current) / 60000;
+                const wordsTyped = userInput.trim().split(' ').filter(word => word.length > 0).length;
+                const currentWpm = Math.round(wordsTyped / timeElapsedMinutes) || 0;
+                const currentAccuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
 
                 setWpm(currentWpm);
                 setAccuracy(currentAccuracy);
 
-                // Update chart data
+                // Update chart
                 const newDataPoint = {
                     time: Math.round((Date.now() - startTimeRef.current) / 1000),
                     wpm: currentWpm,
                     accuracy: currentAccuracy
                 };
 
-                setChartData(prev => [...prev.slice(-19), newDataPoint]);
+                setChartData(prev => {
+                    const newData = [...prev, newDataPoint].slice(-20); // Keep last 20 points
+                    updateChart(newData);
+                    return newData;
+                });
+            }, [userInput, totalKeystrokes, correctKeystrokes]);
+
+            // Update chart
+            const updateChart = (data) => {
+                if (chartInstanceRef.current) {
+                    chartInstanceRef.current.data.labels = data.map(d => d.time + 's');
+                    chartInstanceRef.current.data.datasets[0].data = data.map(d => d.wpm);
+                    chartInstanceRef.current.data.datasets[1].data = data.map(d => d.accuracy);
+                    chartInstanceRef.current.update('none');
+                }
             };
 
+            // Initialize chart
+            useEffect(() => {
+                if (chartRef.current && !chartInstanceRef.current) {
+                    const ctx = chartRef.current.getContext('2d');
+                    chartInstanceRef.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [
+                                {
+                                    label: 'WPM',
+                                    data: [],
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    tension: 0.4,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4
+                                },
+                                {
+                                    label: 'Accuracy',
+                                    data: [],
+                                    borderColor: '#10b981',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                    tension: 0.4,
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        color: darkMode ? '#fff' : '#374151',
+                                        usePointStyle: true
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: {
+                                        color: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                                    },
+                                    ticks: {
+                                        color: darkMode ? '#9ca3af' : '#6b7280'
+                                    }
+                                },
+                                y: {
+                                    grid: {
+                                        color: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                                    },
+                                    ticks: {
+                                        color: darkMode ? '#9ca3af' : '#6b7280'
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 0
+                            }
+                        }
+                    });
+                }
+
+                return () => {
+                    if (chartInstanceRef.current) {
+                        chartInstanceRef.current.destroy();
+                        chartInstanceRef.current = null;
+                    }
+                };
+            }, [darkMode]);
+
+            // Update stats periodically
+            useEffect(() => {
+                if (isActive) {
+                    const interval = setInterval(updateStats, 1000);
+                    return () => clearInterval(interval);
+                }
+            }, [isActive, updateStats]);
+
+            // Handle input change
             const handleInputChange = (e) => {
                 const value = e.target.value;
                 
+                // Start test on first keystroke
                 if (!isActive && value.length > 0) {
                     setIsActive(true);
                     startTimeRef.current = Date.now();
                     setTimeLeft(timeLimit);
                 }
 
+                // Prevent typing beyond text length
+                if (value.length > currentText.length) return;
+
                 setUserInput(value);
                 setCurrentIndex(value.length);
-                
+
                 // Update keystroke counts
                 if (value.length > userInput.length) {
                     setTotalKeystrokes(prev => prev + 1);
@@ -241,16 +587,11 @@
                     if (currentChar === typedChar) {
                         setCorrectKeystrokes(prev => prev + 1);
                     } else {
-                        // Track mistyped words
-                        const words = value.trim().split(' ');
-                        const currentWord = words[words.length - 1];
-                        if (currentWord && !mistypedWords.includes(currentWord)) {
-                            setMistypedWords(prev => [...prev, currentWord]);
-                        }
+                        setErrors(prev => prev + 1);
                     }
                 }
 
-                // Check if test is complete
+                // Check completion
                 if (value.length >= currentText.length) {
                     setIsActive(false);
                     setIsComplete(true);
@@ -258,6 +599,7 @@
                 }
             };
 
+            // Reset test
             const resetTest = () => {
                 setIsActive(false);
                 setTimeLeft(timeLimit);
@@ -265,71 +607,121 @@
                 setCurrentIndex(0);
                 setWpm(0);
                 setAccuracy(100);
-                setChartData([]);
                 setTotalKeystrokes(0);
                 setCorrectKeystrokes(0);
-                setMistypedWords([]);
+                setErrors(0);
                 setIsComplete(false);
                 setShowResults(false);
+                setChartData([]);
                 startTimeRef.current = null;
                 generateText();
-                inputRef.current?.focus();
+                
+                if (chartInstanceRef.current) {
+                    chartInstanceRef.current.data.labels = [];
+                    chartInstanceRef.current.data.datasets[0].data = [];
+                    chartInstanceRef.current.data.datasets[1].data = [];
+                    chartInstanceRef.current.update();
+                }
+                
+                setTimeout(() => inputRef.current?.focus(), 100);
             };
 
+            // Change time limit
+            const handleTimeChange = (newTime) => {
+                setTimeLimit(newTime);
+                setTimeLeft(newTime);
+            };
+
+            // Render text with character styling
             const renderText = () => {
                 return currentText.split('').map((char, index) => {
-                    let className = 'text-lg';
+                    let className = 'char ';
                     
                     if (index < userInput.length) {
-                        className += userInput[index] === char ? ' char-correct' : ' char-incorrect';
+                        className += userInput[index] === char ? 'char-correct' : 'char-incorrect';
                     } else if (index === currentIndex) {
-                        className += ' char-current typing-cursor';
+                        className += 'char-current';
                     } else {
-                        className += ' text-gray-400 dark:text-gray-500';
+                        className += 'char-pending';
                     }
                     
                     return (
                         <span key={index} className={className}>
-                            {char}
+                            {char === ' ' ? '\u00A0' : char}
                         </span>
                     );
                 });
             };
 
+            // Results Modal Component
             const ResultsModal = () => (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 slide-in">
+                <div className="fixed inset-0 modal-backdrop flex items-center justify-center z-50">
+                    <div className="modal-content bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-lg w-full mx-4 glass">
                         <div className="text-center">
-                            <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <lucide-react.Trophy className="w-8 h-8 text-white" />
+                            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 pulse">
+                                <i className="fas fa-trophy text-3xl text-white"></i>
                             </div>
-                            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Test Complete!</h2>
+                            <h2 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+                                Test Complete! 🎉
+                            </h2>
                             
-                            <div className="space-y-4 text-left">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">WPM:</span>
-                                    <span className="font-semibold text-blue-600 dark:text-blue-400">{wpm}</span>
+                            <div className="grid grid-cols-2 gap-6 mb-8">
+                                <div className="text-center">
+                                    <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                                        {wpm}
+                                    </div>
+                                    <div className="text-gray-600 dark:text-gray-400 font-medium">WPM</div>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>
-                                    <span className="font-semibold text-green-600 dark:text-green-400">{accuracy}%</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Keystrokes:</span>
-                                    <span className="font-semibold text-gray-800 dark:text-gray-200">{totalKeystrokes}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Errors:</span>
-                                    <span className="font-semibold text-red-600 dark:text-red-400">{mistypedWords.length}</span>
+                                <div className="text-center">
+                                    <ProgressRing progress={accuracy} size={80} />
                                 </div>
                             </div>
                             
-                            <button
-                                onClick={() => setShowResults(false)}
-                                className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
-                            >
-                                Continue
-                            </button>
+                            <div className="space-y-4 text-left bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 mb-6">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-400 flex items-center">
+                                        <i className="fas fa-keyboard mr-2"></i>
+                                        Total Keystrokes
+                                    </span>
+                                    <span className="font-bold text-gray-800 dark:text-gray-200">
+                                        {totalKeystrokes}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-400 flex items-center">
+                                        <i className="fas fa-check mr-2 text-green-500"></i>
+                                        Correct
+                                    </span>
+                                    <span className="font-bold text-green-600 dark:text-green-400">
+                                        {correctKeystrokes}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 dark:text-gray-400 flex items-center">
+                                        <i className="fas fa-times mr-2 text-red-500"></i>
+                                        Errors
+                                    </span>
+                                    <span className="font-bold text-red-600 dark:text-red-400">
+                                        {errors}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={resetTest}
+                                    className="flex-1 neon-button bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300"
+                                >
+                                    <i className="fas fa-redo mr-2"></i>
+                                    Try Again
+                                </button>
+                                <button
+                                    onClick={() => setShowResults(false)}
+                                    className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white py-3 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300"
+                                >
+                                    Close
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -337,145 +729,225 @@
 
             return (
                 <div className={darkMode ? 'dark' : ''}>
-                    <div className="min-h-screen transition-all duration-300 gradient-bg">
-                        <div className="container mx-auto px-4 py-6">
+                    <div className="min-h-screen animated-gradient transition-all duration-500">
+                        <ParticleSystem />
+                        
+                        <div className="container mx-auto px-4 py-6 relative z-10">
                             {/* Header */}
-                            <header className="flex justify-between items-center mb-8 glass-effect rounded-2xl p-4">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                        <lucide-react.Keyboard className="w-6 h-6 text-white" />
+                            <header className="slide-in-top glass rounded-3xl p-6 mb-8">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center pulse">
+                                            <i className="fas fa-keyboard text-white text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h1 className="text-3xl font-bold text-white">TypeSpeed Pro</h1>
+                                            <p className="text-white/70 text-sm">Advanced Typing Test</p>
+                                        </div>
                                     </div>
-                                    <h1 className="text-2xl font-bold text-white">TypeSpeed Pro</h1>
-                                </div>
-                                
-                                <div className="flex items-center space-x-4">
-                                    <button
-                                        onClick={() => setDarkMode(!darkMode)}
-                                        className="p-2 rounded-lg glass-effect text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200"
-                                    >
-                                        {darkMode ? <lucide-react.Sun className="w-5 h-5" /> : <lucide-react.Moon className="w-5 h-5" />}
-                                    </button>
+                                    
+                                    <div className="flex items-center space-x-4">
+                                        <button
+                                            onClick={() => setDarkMode(!darkMode)}
+                                            className="p-3 glass rounded-2xl text-white hover:bg-white/10 transition-all duration-300 neon-button"
+                                        >
+                                            <i className={`fas ${darkMode ? 'fa-sun' : 'fa-moon'} text-lg`}></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </header>
 
-                            {/* Settings */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                <div className="glass-effect rounded-xl p-4">
-                                    <label className="block text-white text-sm font-medium mb-2">Difficulty</label>
+                            {/* Controls */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                                <div className="slide-in-left glass rounded-2xl p-6">
+                                    <label className="block text-white font-semibold mb-3">
+                                        <i className="fas fa-layer-group mr-2"></i>
+                                        Difficulty
+                                    </label>
                                     <select
                                         value={difficulty}
                                         onChange={(e) => setDifficulty(e.target.value)}
                                         disabled={isActive}
-                                        className="w-full bg-white bg-opacity-20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50 transition-all duration-300"
                                     >
-                                        <option value="easy">Easy</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="hard">Hard</option>
+                                        <option value="easy" className="text-black">Easy</option>
+                                        <option value="medium" className="text-black">Medium</option>
+                                        <option value="hard" className="text-black">Hard</option>
                                     </select>
                                 </div>
 
-                                <div className="glass-effect rounded-xl p-4">
-                                    <label className="block text-white text-sm font-medium mb-2">Time (seconds)</label>
+                                <div className="slide-in-left glass rounded-2xl p-6" style={{animationDelay: '0.1s'}}>
+                                    <label className="block text-white font-semibold mb-3">
+                                        <i className="fas fa-clock mr-2"></i>
+                                        Time Limit
+                                    </label>
                                     <select
                                         value={timeLimit}
-                                        onChange={(e) => setTimeLimit(Number(e.target.value))}
+                                        onChange={(e) => handleTimeChange(Number(e.target.value))}
                                         disabled={isActive}
-                                        className="w-full bg-white bg-opacity-20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full bg-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50 transition-all duration-300"
                                     >
-                                        <option value={15}>15s</option>
-                                        <option value={30}>30s</option>
-                                        <option value={60}>60s</option>
-                                        <option value={120}>120s</option>
+                                        <option value={15} className="text-black">15 seconds</option>
+                                        <option value={30} className="text-black">30 seconds</option>
+                                        <option value={60} className="text-black">60 seconds</option>
+                                        <option value={120} className="text-black">120 seconds</option>
                                     </select>
                                 </div>
 
-                                <div className="glass-effect rounded-xl p-4 flex items-center justify-between">
-                                    <div>
-                                        <div className="text-white text-sm font-medium">Time Left</div>
-                                        <div className="text-2xl font-bold text-white">{timeLeft}s</div>
+                                <div className="slide-in-right glass rounded-2xl p-6" style={{animationDelay: '0.2s'}}>
+                                    <div className="text-center">
+                                        <div className="text-white/70 font-semibold mb-2">
+                                            <i className="fas fa-hourglass-half mr-2"></i>
+                                            Time Left
+                                        </div>
+                                        <div className="text-4xl font-bold text-white glow">
+                                            {timeLeft}s
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div className="slide-in-right glass rounded-2xl p-6 flex items-center justify-center" style={{animationDelay: '0.3s'}}>
                                     <button
                                         onClick={resetTest}
-                                        className="p-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all duration-200"
+                                        className="neon-button bg-gradient-to-r from-red-500 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-red-600 hover:to-pink-700 transition-all duration-300 flex items-center space-x-2"
                                     >
-                                        <lucide-react.RotateCcw className="w-5 h-5 text-white" />
+                                        <i className="fas fa-redo"></i>
+                                        <span>Reset</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Stats */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                <div className="glass-effect rounded-xl p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-white font-semibold">Live Stats</h3>
-                                        <lucide-react.TrendingUp className="w-5 h-5 text-green-400" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="text-center">
-                                            <div className="text-3xl font-bold text-blue-400">{wpm}</div>
-                                            <div className="text-white text-sm opacity-80">WPM</div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="text-3xl font-bold text-green-400">{accuracy}%</div>
-                                            <div className="text-white text-sm opacity-80">Accuracy</div>
-                                        </div>
+                            {/* Stats Dashboard */}
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                                <div className="lg:col-span-2 slide-in-left glass rounded-2xl p-6">
+                                    <h3 className="text-white font-semibold text-xl mb-4 flex items-center">
+                                        <i className="fas fa-chart-line mr-2"></i>
+                                        Live Performance
+                                    </h3>
+                                    <div className="h-64">
+                                        <canvas ref={chartRef}></canvas>
                                     </div>
                                 </div>
 
-                                <div className="glass-effect rounded-xl p-6">
-                                    <h3 className="text-white font-semibold mb-4">Performance Chart</h3>
-                                    <div className="h-32">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <LineChart data={chartData}>
-                                                <Line 
-                                                    type="monotone" 
-                                                    dataKey="wpm" 
-                                                    stroke="#3b82f6" 
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                />
-                                                <Line 
-                                                    type="monotone" 
-                                                    dataKey="accuracy" 
-                                                    stroke="#10b981" 
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                />
-                                            </LineChart>
-                                        </ResponsiveContainer>
+                                <div className="slide-in-right space-y-6">
+                                    <div className="glass rounded-2xl p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="text-white font-semibold flex items-center">
+                                                <i className="fas fa-tachometer-alt mr-2 text-blue-400"></i>
+                                                WPM
+                                            </span>
+                                            <span className="text-3xl font-bold text-blue-400 glow">{wpm}</span>
+                                        </div>
+                                        <div className="w-full bg-white/10 rounded-full h-2">
+                                            <div 
+                                                className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-500"
+                                                style={{width: `${Math.min(wpm * 2, 100)}%`}}
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="glass rounded-2xl p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="text-white font-semibold flex items-center">
+                                                <i className="fas fa-bullseye mr-2 text-green-400"></i>
+                                                Accuracy
+                                            </span>
+                                            <span className="text-3xl font-bold text-green-400 glow">{accuracy}%</span>
+                                        </div>
+                                        <div className="w-full bg-white/10 rounded-full h-2">
+                                            <div 
+                                                className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+                                                style={{width: `${accuracy}%`}}
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="glass rounded-2xl p-6">
+                                        <div className="grid grid-cols-2 gap-4 text-center">
+                                            <div>
+                                                <div className="text-2xl font-bold text-white">{totalKeystrokes}</div>
+                                                <div className="text-white/70 text-sm">Keystrokes</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-2xl font-bold text-red-400">{errors}</div>
+                                                <div className="text-white/70 text-sm">Errors</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Typing Area */}
-                            <div className="glass-effect rounded-2xl p-8 mb-6">
-                                <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-xl leading-relaxed font-mono text-justify">
-                                    {renderText()}
+                            <div className="slide-in-bottom glass rounded-3xl p-8">
+                                <div className="mb-6">
+                                    <h3 className="text-white font-semibold text-xl mb-4 flex items-center">
+                                        <i className="fas fa-keyboard mr-2"></i>
+                                        Typing Area
+                                    </h3>
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 mono text-xl leading-relaxed min-h-32 max-h-48 overflow-y-auto">
+                                        {renderText()}
+                                    </div>
                                 </div>
-                                
-                                <textarea
-                                    ref={inputRef}
-                                    value={userInput}
-                                    onChange={handleInputChange}
-                                    disabled={isComplete}
-                                    placeholder="Start typing to begin the test..."
-                                    className="w-full h-32 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-transparent focus:border-blue-500 focus:outline-none resize-none font-mono text-lg"
-                                />
-                                
-                                <div className="mt-4 text-center">
-                                    <div className="text-white text-sm opacity-80">
-                                        {isActive ? 'Keep typing!' : isComplete ? 'Test completed!' : 'Start typing to begin'}
+
+                                <div className="relative">
+                                    <textarea
+                                        ref={inputRef}
+                                        value={userInput}
+                                        onChange={handleInputChange}
+                                        disabled={isComplete}
+                                        placeholder={isActive ? "Keep typing..." : "Click here and start typing to begin the test..."}
+                                        className="w-full h-32 p-6 bg-white/10 text-white rounded-2xl border-2 border-transparent focus:border-blue-400 focus:outline-none resize-none mono text-lg placeholder-white/50 disabled:opacity-50 transition-all duration-300"
+                                        autoFocus
+                                    />
+                                    {!isActive && !isComplete && (
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="text-white/70 text-center">
+                                                <i className="fas fa-play text-3xl mb-2 pulse"></i>
+                                                <div className="font-semibold">Start typing to begin!</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-6 text-center">
+                                    <div className="text-white/70 text-sm">
+                                        {isActive ? (
+                                            <span className="flex items-center justify-center">
+                                                <i className="fas fa-circle text-green-400 mr-2 pulse"></i>
+                                                Test in progress...
+                                            </span>
+                                        ) : isComplete ? (
+                                            <span className="flex items-center justify-center text-green-400">
+                                                <i className="fas fa-check-circle mr-2"></i>
+                                                Test completed!
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center justify-center">
+                                                <i className="fas fa-info-circle mr-2"></i>
+                                                Ready to start
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Footer */}
+                            <footer className="mt-12 text-center text-white/50 text-sm">
+                                <p>© 2024 TypeSpeed Pro - Advanced Typing Test Application</p>
+                                <p className="mt-2">
+                                    <i className="fas fa-heart text-red-400 mr-1"></i>
+                                    Made with React & Tailwind CSS
+                                </p>
+                            </footer>
                         </div>
 
                         {showResults && <ResultsModal />}
                     </div>
                 </div>
             );
-        }
+        };
 
+        // Render the app
         ReactDOM.render(<TypingTestApp />, document.getElementById('root'));
     </script>
 </body>
