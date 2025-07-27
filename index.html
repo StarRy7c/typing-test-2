@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeSpeed Pro - Modern Typing Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .typing-cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .word-correct {
+            background: linear-gradient(120deg, #10b981, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .word-incorrect {
+            background: linear-gradient(120deg, #ef4444, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .char-correct {
+            color: #10b981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .char-incorrect {
+            color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .char-current {
+            background-color: #3b82f6;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .glass-effect {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
+
+        // Word lists for different difficulty levels
+        const WORD_LISTS = {
+            easy: ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'her', 'was', 'one', 'our', 'had', 'day', 'get', 'use', 'man', 'new', 'now', 'way', 'may', 'say', 'each', 'which', 'their', 'time', 'will', 'about', 'if', 'up', 'out', 'many', 'then', 'them', 'these', 'so', 'some', 'what', 'would'],
+            medium: ['through', 'just', 'form', 'sentence', 'great', 'think', 'where', 'much', 'before', 'move', 'right', 'too', 'any', 'same', 'tell', 'does', 'most', 'know', 'get', 'through', 'back', 'much', 'before', 'good', 'sentence', 'man', 'think', 'say', 'great', 'where', 'help', 'through', 'much', 'before', 'line', 'right', 'too', 'means', 'old', 'any'],
+            hard: ['extraordinary', 'phenomenon', 'conscientious', 'prerequisite', 'accommodate', 'definitely', 'separate', 'necessary', 'achievement', 'maintenance', 'embarrass', 'occurrence', 'privilege', 'temperature', 'tomorrow', 'beautiful', 'calendar', 'committee', 'language', 'restaurant', 'surprised', 'difference', 'government', 'independent', 'beginning', 'interesting', 'knowledge', 'available', 'everything', 'experience']
+        };
+
+        // App component
+        function TypingTestApp() {
+            const [darkMode, setDarkMode] = useState(false);
+            const [difficulty, setDifficulty] = useState('medium');
+            const [timeLimit, setTimeLimit] = useState(60);
+            const [isActive, setIsActive] = useState(false);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [currentText, setCurrentText] = useState('');
+            const [userInput, setUserInput] = useState('');
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [wpm, setWpm] = useState(0);
+            const [accuracy, setAccuracy] = useState(100);
+            const [chartData, setChartData] = useState([]);
+            const [totalKeystrokes, setTotalKeystrokes] = useState(0);
+            const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
+            const [mistypedWords, setMistypedWords] = useState([]);
+            const [isComplete, setIsComplete] = useState(false);
+            const [showResults, setShowResults] = useState(false);
+            
+            const inputRef = useRef(null);
+            const startTimeRef = useRef(null);
+
+            // Initialize text based on difficulty
+            useEffect(() => {
+                generateText();
+            }, [difficulty]);
+
+            // Timer logic
+            useEffect(() => {
+                let interval = null;
+                if (isActive && timeLeft > 0) {
+                    interval = setInterval(() => {
+                        setTimeLeft(timeLeft => {
+                            if (timeLeft <= 1) {
+                                setIsActive(false);
+                                setIsComplete(true);
+                                setShowResults(true);
+                                return 0;
+                            }
+                            return timeLeft - 1;
+                        });
+                    }, 1000);
+                } else if (!isActive && timeLeft !== 0) {
+                    clearInterval(interval);
+                }
+                return () => clearInterval(interval);
+            }, [isActive, timeLeft]);
+
+            // Update stats every second during test
+            useEffect(() => {
+                if (isActive && startTimeRef.current) {
+                    const interval = setInterval(() => {
+                        updateStats();
+                    }, 1000);
+                    return () => clearInterval(interval);
+                }
+            }, [isActive, userInput]);
+
+            const generateText = () => {
+                const words = WORD_LISTS[difficulty];
+                const textLength = difficulty === 'easy' ? 50 : difficulty === 'medium' ? 70 : 90;
+                const randomText = [];
+                
+                for (let i = 0; i < textLength; i++) {
+                    randomText.push(words[Math.floor(Math.random() * words.length)]);
+                }
+                
+                setCurrentText(randomText.join(' '));
+            };
+
+            const updateStats = () => {
+                if (!startTimeRef.current || userInput.length === 0) return;
+
+                const timeElapsed = (Date.now() - startTimeRef.current) / 1000 / 60; // in minutes
+                const wordsTyped = userInput.trim().split(' ').length;
+                const currentWpm = Math.round(wordsTyped / timeElapsed) || 0;
+                const currentAccuracy = Math.round((correctKeystrokes / totalKeystrokes) * 100) || 100;
+
+                setWpm(currentWpm);
+                setAccuracy(currentAccuracy);
+
+                // Update chart data
+                const newDataPoint = {
+                    time: Math.round((Date.now() - startTimeRef.current) / 1000),
+                    wpm: currentWpm,
+                    accuracy: currentAccuracy
+                };
+
+                setChartData(prev => [...prev.slice(-19), newDataPoint]);
+            };
+
+            const handleInputChange = (e) => {
+                const value = e.target.value;
+                
+                if (!isActive && value.length > 0) {
+                    setIsActive(true);
+                    startTimeRef.current = Date.now();
+                    setTimeLeft(timeLimit);
+                }
+
+                setUserInput(value);
+                setCurrentIndex(value.length);
+                
+                // Update keystroke counts
+                if (value.length > userInput.length) {
+                    setTotalKeystrokes(prev => prev + 1);
+                    
+                    const currentChar = currentText[value.length - 1];
+                    const typedChar = value[value.length - 1];
+                    
+                    if (currentChar === typedChar) {
+                        setCorrectKeystrokes(prev => prev + 1);
+                    } else {
+                        // Track mistyped words
+                        const words = value.trim().split(' ');
+                        const currentWord = words[words.length - 1];
+                        if (currentWord && !mistypedWords.includes(currentWord)) {
+                            setMistypedWords(prev => [...prev, currentWord]);
+                        }
+                    }
+                }
+
+                // Check if test is complete
+                if (value.length >= currentText.length) {
+                    setIsActive(false);
+                    setIsComplete(true);
+                    setShowResults(true);
+                }
+            };
+
+            const resetTest = () => {
+                setIsActive(false);
+                setTimeLeft(timeLimit);
+                setUserInput('');
+                setCurrentIndex(0);
+                setWpm(0);
+                setAccuracy(100);
+                setChartData([]);
+                setTotalKeystrokes(0);
+                setCorrectKeystrokes(0);
+                setMistypedWords([]);
+                setIsComplete(false);
+                setShowResults(false);
+                startTimeRef.current = null;
+                generateText();
+                inputRef.current?.focus();
+            };
+
+            const renderText = () => {
+                return currentText.split('').map((char, index) => {
+                    let className = 'text-lg';
+                    
+                    if (index < userInput.length) {
+                        className += userInput[index] === char ? ' char-correct' : ' char-incorrect';
+                    } else if (index === currentIndex) {
+                        className += ' char-current typing-cursor';
+                    } else {
+                        className += ' text-gray-400 dark:text-gray-500';
+                    }
+                    
+                    return (
+                        <span key={index} className={className}>
+                            {char}
+                        </span>
+                    );
+                });
+            };
+
+            const ResultsModal = () => (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 fade-in">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 slide-in">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <lucide-react.Trophy className="w-8 h-8 text-white" />
+                            </div>
+                            <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Test Complete!</h2>
+                            
+                            <div className="space-y-4 text-left">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">WPM:</span>
+                                    <span className="font-semibold text-blue-600 dark:text-blue-400">{wpm}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Accuracy:</span>
+                                    <span className="font-semibold text-green-600 dark:text-green-400">{accuracy}%</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Keystrokes:</span>
+                                    <span className="font-semibold text-gray-800 dark:text-gray-200">{totalKeystrokes}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Errors:</span>
+                                    <span className="font-semibold text-red-600 dark:text-red-400">{mistypedWords.length}</span>
+                                </div>
+                            </div>
+                            
+                            <button
+                                onClick={() => setShowResults(false)}
+                                className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+                            >
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className={darkMode ? 'dark' : ''}>
+                    <div className="min-h-screen transition-all duration-300 gradient-bg">
+                        <div className="container mx-auto px-4 py-6">
+                            {/* Header */}
+                            <header className="flex justify-between items-center mb-8 glass-effect rounded-2xl p-4">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <lucide-react.Keyboard className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h1 className="text-2xl font-bold text-white">TypeSpeed Pro</h1>
+                                </div>
+                                
+                                <div className="flex items-center space-x-4">
+                                    <button
+                                        onClick={() => setDarkMode(!darkMode)}
+                                        className="p-2 rounded-lg glass-effect text-white hover:bg-white hover:bg-opacity-20 transition-all duration-200"
+                                    >
+                                        {darkMode ? <lucide-react.Sun className="w-5 h-5" /> : <lucide-react.Moon className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </header>
+
+                            {/* Settings */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div className="glass-effect rounded-xl p-4">
+                                    <label className="block text-white text-sm font-medium mb-2">Difficulty</label>
+                                    <select
+                                        value={difficulty}
+                                        onChange={(e) => setDifficulty(e.target.value)}
+                                        disabled={isActive}
+                                        className="w-full bg-white bg-opacity-20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="easy">Easy</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+
+                                <div className="glass-effect rounded-xl p-4">
+                                    <label className="block text-white text-sm font-medium mb-2">Time (seconds)</label>
+                                    <select
+                                        value={timeLimit}
+                                        onChange={(e) => setTimeLimit(Number(e.target.value))}
+                                        disabled={isActive}
+                                        className="w-full bg-white bg-opacity-20 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value={15}>15s</option>
+                                        <option value={30}>30s</option>
+                                        <option value={60}>60s</option>
+                                        <option value={120}>120s</option>
+                                    </select>
+                                </div>
+
+                                <div className="glass-effect rounded-xl p-4 flex items-center justify-between">
+                                    <div>
+                                        <div className="text-white text-sm font-medium">Time Left</div>
+                                        <div className="text-2xl font-bold text-white">{timeLeft}s</div>
+                                    </div>
+                                    <button
+                                        onClick={resetTest}
+                                        className="p-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all duration-200"
+                                    >
+                                        <lucide-react.RotateCcw className="w-5 h-5 text-white" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div className="glass-effect rounded-xl p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-white font-semibold">Live Stats</h3>
+                                        <lucide-react.TrendingUp className="w-5 h-5 text-green-400" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-blue-400">{wpm}</div>
+                                            <div className="text-white text-sm opacity-80">WPM</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-3xl font-bold text-green-400">{accuracy}%</div>
+                                            <div className="text-white text-sm opacity-80">Accuracy</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="glass-effect rounded-xl p-6">
+                                    <h3 className="text-white font-semibold mb-4">Performance Chart</h3>
+                                    <div className="h-32">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={chartData}>
+                                                <Line 
+                                                    type="monotone" 
+                                                    dataKey="wpm" 
+                                                    stroke="#3b82f6" 
+                                                    strokeWidth={2}
+                                                    dot={false}
+                                                />
+                                                <Line 
+                                                    type="monotone" 
+                                                    dataKey="accuracy" 
+                                                    stroke="#10b981" 
+                                                    strokeWidth={2}
+                                                    dot={false}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Typing Area */}
+                            <div className="glass-effect rounded-2xl p-8 mb-6">
+                                <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-xl leading-relaxed font-mono text-justify">
+                                    {renderText()}
+                                </div>
+                                
+                                <textarea
+                                    ref={inputRef}
+                                    value={userInput}
+                                    onChange={handleInputChange}
+                                    disabled={isComplete}
+                                    placeholder="Start typing to begin the test..."
+                                    className="w-full h-32 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-transparent focus:border-blue-500 focus:outline-none resize-none font-mono text-lg"
+                                />
+                                
+                                <div className="mt-4 text-center">
+                                    <div className="text-white text-sm opacity-80">
+                                        {isActive ? 'Keep typing!' : isComplete ? 'Test completed!' : 'Start typing to begin'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {showResults && <ResultsModal />}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<TypingTestApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
